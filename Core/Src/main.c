@@ -46,6 +46,27 @@ UART_HandleTypeDef huart2;
 
 uint16_t ButtonMatrixState = 0;
 uint32_t ButtonMatrixTimeStamp = 0;
+uint32_t Buttonpress[2] = {0};
+uint8_t LED = 0;
+uint8_t state = 1;
+enum
+{
+	statestart = 0,
+ ///////////////////////////////////
+	press_1 = 256,
+	press_2 = 512,
+	press_3 = 1024,
+	press_4 = 16,
+	press_5 = 32,
+	press_6 = 64,
+	press_7 = 1,
+	press_8 = 2,
+	press_9 = 4,
+	press_0 = 4096,
+	press_OK = 32768,
+	press_Clear= 8
+
+};
 
 /* USER CODE END PV */
 
@@ -108,7 +129,160 @@ int main(void)
   while (1)
   {
 	  ButtonMatrixUpdate();
+	  Buttonpress[0] = ButtonMatrixState;
+	  if(ButtonMatrixState == 1  || ButtonMatrixState == 2   || ButtonMatrixState == 4   || ButtonMatrixState == 8  ||
+	     ButtonMatrixState == 16 || ButtonMatrixState ==32   || ButtonMatrixState ==64   || ButtonMatrixState == 256||
+	     ButtonMatrixState ==512 || ButtonMatrixState ==1024 || ButtonMatrixState ==4096 || ButtonMatrixState == 32768 )
+	  {
+	      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
+	  }
+	  else
+	  {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
+	  }
+	  if(Buttonpress[0] == 0 && Buttonpress[1] != 0)
+	  {
+		  switch(state)
+		     {
 
+		      case 1:
+		         if(Buttonpress[1] == press_6)
+		         {
+		          state = 2;
+		         }
+		           else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 2:
+		    	 if(Buttonpress[1] == press_2)
+		         {
+		          state = 3;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 3:
+		         if(Buttonpress[1] == press_3)
+		         {
+		          state = 4;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 4:
+		         if(Buttonpress[1] == press_4)
+		         {
+		          state = 5;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 5:
+		         if(Buttonpress[1] == press_0)
+		         {
+		          state = 6;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 6:
+		         if(Buttonpress[1] == press_5)
+		         {
+		          state = 7;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 7:
+		         if(Buttonpress[1] == press_0)
+		         {
+		          state = 8;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 8:
+		         if(Buttonpress[1] == press_0)
+		         {
+		          state = 9;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 9:
+		         if(Buttonpress[1] == press_0)
+		         {
+		          state = 10;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 10:
+		         if(Buttonpress[1] == press_5)
+		         {
+		          state = 11;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 11:
+		         if(Buttonpress[1] == press_3)
+		         {
+		          state = 12;
+		         }
+		         else
+		         {
+		          state = 1;
+		         }
+		         break;
+		      case 12:
+		         if(Buttonpress[1] == press_OK)
+		         {
+		          LED = 1;
+		         }
+		         else
+		         {
+		          state = 1;
+		          LED = 0;
+		         }
+		         break;
+		      default:
+		         state = 1;
+		         break;
+		     }
+	  }
+	  Buttonpress[1] = Buttonpress[0];
+
+
+	  //Run LED (key = 62340500053) ----------------------------------------//
+	  if(LED == 1  )
+	  {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+	  }
+	  else
+	  {
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	  }
 
 
   //--------------------------------------------------------------------------------
@@ -212,7 +386,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_6|GPIO_PIN_8, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7|GPIO_PIN_9, GPIO_PIN_SET);
@@ -229,16 +403,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : LD2_Pin PA7 PA9 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_7|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA7 PA9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_9;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  /*Configure GPIO pins : PA6 PA8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
